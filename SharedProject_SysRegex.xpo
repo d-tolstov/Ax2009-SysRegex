@@ -1,0 +1,103 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: SysRegex выгружен
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #SysRegex
+    PROPERTIES
+      Name                #SysRegex
+      Extends             #
+      RunOn               #Called from
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class SysRegex
+        #{
+        #    str     pattern;
+        #}
+      ENDSOURCE
+      SOURCE #isMatch
+        #boolean isMatch(
+        #    str input
+        #)
+        #{
+        #;
+        #    new InteropPermission( InteropKind::ClrInterop).assert();
+        #
+        #    return System.Text.RegularExpressions.Regex::IsMatch( input, pattern);
+        #}
+      ENDSOURCE
+      SOURCE #new
+        #void new( str _pattern)
+        #{
+        #;
+        #    pattern = _pattern;
+        #}
+      ENDSOURCE
+      SOURCE #pattern
+        #str pattern()
+        #{
+        #    return pattern;
+        #}
+      ENDSOURCE
+      SOURCE #Replace
+        #str Replace(
+        #    str     input
+        #  , str     replacement
+        #)
+        #{
+        #;
+        #    new InteropPermission( InteropKind::ClrInterop).assert();
+        #
+        #    return CLRInterop::getAnyTypeForObject(System.Text.RegularExpressions.Regex::Replace( input, pattern, replacement));
+        #}
+      ENDSOURCE
+      SOURCE #construct
+        #static SysRegex construct( str _pattern)
+        #{
+        #    return new SysRegex(_pattern);
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : SysRegex unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #SysRegex
+   SHARED
+  PROPERTIES
+    Name                #SysRegex
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    GROUP #Classes
+      PROPERTIES
+        Name                #Classes
+        ProjectGroupType    #Classes
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 41905
+        NODETYPE 329
+        NAME #SysRegex
+      ENDNODE
+      ENDGROUP
+      
+  ENDPROJECT
+  
+
+***Element: END
