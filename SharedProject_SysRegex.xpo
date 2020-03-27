@@ -16,13 +16,36 @@ Formatversion: 1
     
     METHODS
       Version: 3
+      SOURCE #_Match
+        #SysRegexMatch _Match(
+        #    str     input
+        #)
+        #{
+        #    System.Text.RegularExpressions.Match    matchObject;
+        #    str                                     ret;
+        #;
+        #    new InteropPermission( InteropKind::ClrInterop).assert();
+        #
+        #    matchObject = regex.Match( input);
+        #
+        #    return new SysRegexMatch(matchObject);
+        #}
+      ENDSOURCE
       SOURCE #classDeclaration
+        #/// <summary>
+        #/// Обертка для класса System.Text.RegularExpressions.Regex
+        #/// </summary>
+        #/// <remarks>
+        #///
+        #/// </remarks>
         #class SysRegex
         #{
-        #    str     pattern;
+        #    System.Text.RegularExpressions.Regex    regex;
+        #    str                                     pattern;
         #}
       ENDSOURCE
       SOURCE #isMatch
+        #// Есть ли вхождения паттерна в указанной строке
         #boolean isMatch(
         #    str input
         #)
@@ -30,13 +53,25 @@ Formatversion: 1
         #;
         #    new InteropPermission( InteropKind::ClrInterop).assert();
         #
-        #    return System.Text.RegularExpressions.Regex::IsMatch( input, pattern);
+        #    return regex.IsMatch( input);
+        #}
+      ENDSOURCE
+      SOURCE #MatchValue
+        #// Получение первого вхождения паттерна в указанную строку
+        #str MatchValue(
+        #    str     input
+        #)
+        #{
+        #    return this._Match( input).Value();
         #}
       ENDSOURCE
       SOURCE #new
         #void new( str _pattern)
         #{
         #;
+        #    new InteropPermission( InteropKind::ClrInterop).assert();
+        #
+        #    regex   = new System.Text.RegularExpressions.Regex( _pattern);
         #    pattern = _pattern;
         #}
       ENDSOURCE
@@ -47,21 +82,255 @@ Formatversion: 1
         #}
       ENDSOURCE
       SOURCE #Replace
+        #// Замена всех случаев совпадения с паттерном в указанной строке
         #str Replace(
         #    str     input
         #  , str     replacement
         #)
         #{
+        #    str ret;
         #;
         #    new InteropPermission( InteropKind::ClrInterop).assert();
         #
-        #    return CLRInterop::getAnyTypeForObject(System.Text.RegularExpressions.Regex::Replace( input, pattern, replacement));
+        #    ret = CLRInterop::getAnyTypeForObject( regex.Replace( input, replacement));
+        #
+        #    return ret;
         #}
       ENDSOURCE
       SOURCE #construct
         #static SysRegex construct( str _pattern)
         #{
         #    return new SysRegex(_pattern);
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: SysRegexMatch выгружен
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #SysRegexMatch
+    PROPERTIES
+      Name                #SysRegexMatch
+      Extends             #
+      RunOn               #Called from
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #/// <summary>
+        #/// Обертка для класса System.Text.RegularExpressions.Match
+        #/// </summary>
+        #/// <remarks>
+        #///
+        #/// </remarks>
+        #class SysRegexMatch
+        #{
+        #    System.Text.RegularExpressions.Match    _match;
+        #
+        #    // Match.get_Value
+        #    str         value;
+        #
+        #    // Match.get_Groups в двух вариантах - массив и структура, кому как удобнее
+        #    Array       groupsArray;
+        #    Struct      groupsStruct;
+        #    container   groupsContainer;
+        #}
+      ENDSOURCE
+      SOURCE #GroupsArray
+        #Array GroupsArray()
+        #{
+        #    return groupsArray;
+        #}
+      ENDSOURCE
+      SOURCE #GroupsContainer
+        #container GroupsContainer()
+        #{
+        #    return groupsContainer;
+        #}
+      ENDSOURCE
+      SOURCE #GroupsStruct
+        #Struct GroupsStruct()
+        #{
+        #    return groupsStruct;
+        #}
+      ENDSOURCE
+      SOURCE #new
+        #void new( System.Text.RegularExpressions.Match __match)
+        #{
+        #    System.Text.RegularExpressions.GroupCollection  groupsCLR;
+        #    System.Text.RegularExpressions.Group            groupCLR;
+        #    int                                             i;
+        #    str                                             groupValue;
+        #;
+        #    _match  = __match;
+        #
+        #    new InteropPermission( InteropKind::ClrInterop).assert();
+        #
+        #    value           = _match.get_Value();
+        #
+        #    groupsCLR       = _match.get_Groups();
+        #
+        #    groupsArray     = new Array(Types::String);
+        #    groupsStruct    = new Struct();
+        #    groupsContainer = connull();
+        #
+        #    for (i=0; i<CLRInterop::getAnyTypeForObject(groupsCLR.get_Count()); i++)
+        #    {
+        #        groupCLR    = groupsCLR.get_Item(i);
+        #        groupValue  = CLRInterop::getAnyTypeForObject(groupCLR.get_Value());
+        #
+        #        if (i)
+        #        {
+        #            groupsArray.value( i, groupValue);
+        #            groupsContainer += groupValue;
+        #        }
+        #        groupsStruct.add(
+        #            CLRInterop::getAnyTypeForObject(groupCLR.get_Name())
+        #          , groupValue
+        #        );
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #Value
+        #str Value()
+        #{
+        #    return value;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: SysRegexTest выгружен
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #SysRegexTest
+    PROPERTIES
+      Name                #SysRegexTest
+      Extends             #SysTestCase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class SysRegexTest extends SysTestCase
+        #{
+        #    SysRegex    regex;
+        #}
+      ENDSOURCE
+      SOURCE #testIsMatch
+        #void testIsMatch()
+        #{
+        #;
+        #    this.assertTrue( SysRegex::construct(@"=(.+)!R(\d+)C(\d+)").isMatch( "=Sheet!R1C1"));
+        #    this.assertFalse( SysRegex::construct(@"=(.+)!R(\d+)C(\d+)").isMatch( "=Sheet!R1"));
+        #}
+      ENDSOURCE
+      SOURCE #testMatchValue
+        #void testMatchValue()
+        #{
+        #;
+        #    this.assertEquals( "=Sheet!R1C1", SysRegex::construct(@"=(.+)!R(\d+)C(\d+)").MatchValue( "=Sheet!R1C1"));
+        #    this.assertEquals( "=Sheet!R1C1", SysRegex::construct(@"=(.+)!R(\d+)C(\d+)").MatchValue( "=Sheet!R1C1:R2C2"));
+        #}
+      ENDSOURCE
+      SOURCE #testReplace
+        #void testReplace()
+        #{
+        #    tempStr patt = @"=(.+)!R(\d+)C(\d+)",
+        #            text = "=Sheet!R1C2";
+        #;
+        #    regex = SysRegex::construct(patt);
+        #
+        #    this.assertEquals( "Sheet", regex.Replace(text, "$1"));
+        #    this.assertEquals( "1",     regex.Replace(text, "$2"));
+        #    this.assertEquals( "2",     regex.Replace(text, "$3"));
+        #
+        #
+        #    this.assertEquals( "Sheet",         SysRegex::construct(@"=(.+)!R(\d+)C(\d+)")  .Replace( "=Sheet!R1C1", "$1"));
+        #    this.assertEquals( "SheetC1",       SysRegex::construct(@"=(.+)!R(\d+)")        .Replace( "=Sheet!R1C1", "$1"));
+        #    this.assertEquals( "=Sheet!R1C1",   SysRegex::construct(@"=(.+)!R(\d+)C(\d+)")  .Replace( "=Sheet!R1C1", "=$1!R$2C$3"));
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: SysRegexMatchTest выгружен
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #SysRegexMatchTest
+    PROPERTIES
+      Name                #SysRegexMatchTest
+      Extends             #SysTestCase
+      RunOn               #Server
+    ENDPROPERTIES
+    
+    METHODS
+      Version: 3
+      SOURCE #classDeclaration
+        #class SysRegexMatchTest extends SysTestCase
+        #{
+        #    SysRegexMatch   matchObject;
+        #}
+      ENDSOURCE
+      SOURCE #testGroupsArray
+        #void testGroupsArray()
+        #{
+        #    Array   arr;
+        #;
+        #    matchObject = SysRegex::construct(@"=(.+)!R(\d+)C(\d+)")._Match( "=Sheet!R10C20");
+        #    arr         = matchObject.GroupsArray();
+        #
+        #    this.assertEquals( "Sheet", arr.value(1));
+        #    this.assertEquals( "10", arr.value(2));
+        #    this.assertEquals( "20", arr.value(3));
+        #}
+      ENDSOURCE
+      SOURCE #testGroupsContainer
+        #void testGroupsContainer()
+        #{
+        #;
+        #    matchObject = SysRegex::construct(@"=(.+)!R(\d+)C(\d+)")._Match( "=Sheet!R10C20");
+        #    this.assertEquals( ["Sheet","10","20"], matchObject.GroupsContainer());
+        #}
+      ENDSOURCE
+      SOURCE #testGroupsStruct
+        #void testGroupsStruct()
+        #{
+        #    Struct   s;
+        #;
+        #    matchObject = SysRegex::construct(@"=(.+)!R(\d+)C(\d+)")._Match( "=Sheet!R10C20");
+        #    s           = matchObject.GroupsStruct();
+        #
+        #    this.assertEquals( "=Sheet!R10C20", s.value("0"));
+        #    this.assertEquals( "Sheet",         s.value("1"));
+        #    this.assertEquals( "10",            s.value("2"));
+        #    this.assertEquals( "20",            s.value("3"));
+        #}
+      ENDSOURCE
+      SOURCE #testValue
+        #void testValue()
+        #{
+        #;
+        #    matchObject = SysRegex::construct(@"=(.+)!R(\d+)C(\d+)")._Match( "=Sheet!R1C1");
+        #    this.assertEquals( "=Sheet!R1C1", matchObject.Value());
+        #
+        #    matchObject = SysRegex::construct(@"=(.+)!R(\d+)C(\d+)")._Match( "=Sheet!R1C1:R2C2");
+        #    this.assertEquals( "=Sheet!R1C1", matchObject.Value());
+        #
+        #    matchObject = SysRegex::construct(@"=(.+)!R(\d+)C(\d+)")._Match( "=Sheet!R1");
+        #    this.assertEquals( "", matchObject.Value());
         #}
       ENDSOURCE
     ENDMETHODS
@@ -94,6 +363,37 @@ Formatversion: 1
         UTILOBJECTID 41905
         NODETYPE 329
         NAME #SysRegex
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 41909
+        NODETYPE 329
+        NAME #SysRegexMatch
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Test
+      PROPERTIES
+        Name                #Test
+        ProjectGroupType    #Classes
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 41907
+        NODETYPE 329
+        NAME #SysRegexTest
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 41910
+        NODETYPE 329
+        NAME #SysRegexMatchTest
       ENDNODE
       ENDGROUP
       
