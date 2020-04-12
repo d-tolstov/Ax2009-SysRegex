@@ -56,6 +56,54 @@ Formatversion: 1
         #    return regex.IsMatch( input);
         #}
       ENDSOURCE
+      SOURCE #MatchesArray
+        #Array MatchesArray(
+        #    str     input
+        #)
+        #{
+        #    System.Text.RegularExpressions.MatchCollection  matchCollection;
+        #    System.Text.RegularExpressions.Match            matchObject;
+        #    Array                                           ret;
+        #    int                                             i, matchCount;
+        #;
+        #    new InteropPermission( InteropKind::ClrInterop).assert();
+        #
+        #    matchCollection = regex.Matches( input);
+        #    matchCount      = matchCollection.get_Count();
+        #    ret             = new Array(Types::Class);
+        #    for (i=1; i<=matchCount; i++)
+        #    {
+        #        matchObject = matchCollection.get_Item(i-1);
+        #        ret.value( i, new SysRegexMatch( matchObject));
+        #    }
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #MatchesList
+        #List MatchesList(
+        #    str     input
+        #)
+        #{
+        #    System.Text.RegularExpressions.MatchCollection  matchCollection;
+        #    System.Text.RegularExpressions.Match            matchObject;
+        #    List                                            ret;
+        #    int                                             i, matchCount;
+        #;
+        #    new InteropPermission( InteropKind::ClrInterop).assert();
+        #
+        #    matchCollection = regex.Matches( input);
+        #    matchCount      = matchCollection.get_Count();
+        #    ret             = new List(Types::Class);
+        #    for (i=1; i<=matchCount; i++)
+        #    {
+        #        matchObject = matchCollection.get_Item(i-1);
+        #        ret.addEnd( new SysRegexMatch( matchObject));
+        #    }
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
       SOURCE #MatchValue
         #// Получение первого вхождения паттерна в указанную строку
         #str MatchValue(
@@ -232,6 +280,68 @@ Formatversion: 1
         #;
         #    this.assertTrue( SysRegex::construct(@"=(.+)!R(\d+)C(\d+)").isMatch( "=Sheet!R1C1"));
         #    this.assertFalse( SysRegex::construct(@"=(.+)!R(\d+)C(\d+)").isMatch( "=Sheet!R1"));
+        #}
+      ENDSOURCE
+      SOURCE #testMatchesArray
+        #void testMatchesArray()
+        #{
+        #    Array           matchArray;
+        #    int             i;
+        #    SysRegexMatch   regexMatch;
+        #;
+        #    // Список вхождений сочетаний символов без пробела
+        #    matchArray  = SysRegex::construct("(\\S+)").MatchesArray("a bb  c 1 0");
+        #    this.assertEquals( 5, matchArray.lastIndex());
+        #
+        #    for (i=1; i<=matchArray.lastIndex(); i++)
+        #    {
+        #        regexMatch  = matchArray.value(i);
+        #        regexMatch.Value();
+        #        regexMatch.GroupsArray().value(1);
+        #    }
+        #
+        #    // Список вхождений сочетаний пробелов
+        #    matchArray  = SysRegex::construct("(\\s+)").MatchesArray("a bb  c 1 0");
+        #    this.assertEquals( 4, matchArray.lastIndex());
+        #
+        #    for (i=1; i<=matchArray.lastIndex(); i++)
+        #    {
+        #        regexMatch  = matchArray.value(i);
+        #        regexMatch.Value();
+        #        regexMatch.GroupsArray().value(1);
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #testMatchesList
+        #void testMatchesList()
+        #{
+        #    List            matchList;
+        #    Enumerator      enumerator;
+        #    SysRegexMatch   regexMatch;
+        #;
+        #    // Список вхождений сочетаний символов без пробела
+        #    matchList  = SysRegex::construct("(\\S+)").MatchesList("a bb  c 1 0");
+        #    this.assertEquals( 5, matchList.elements());
+        #
+        #    enumerator  = matchList.getEnumerator();
+        #    while (enumerator.moveNext())
+        #    {
+        #        regexMatch  = enumerator.current();
+        #        regexMatch.Value();
+        #        regexMatch.GroupsArray().value(1);
+        #    }
+        #
+        #    // Список вхождений сочетаний пробелов
+        #    matchList  = SysRegex::construct("(\\s+)").MatchesList("a bb  c 1 0");
+        #    this.assertEquals( 4, matchList.elements());
+        #
+        #    enumerator  = matchList.getEnumerator();
+        #    while (enumerator.moveNext())
+        #    {
+        #        regexMatch  = enumerator.current();
+        #        regexMatch.Value();
+        #        regexMatch.GroupsArray().value(1);
+        #    }
         #}
       ENDSOURCE
       SOURCE #testMatchValue

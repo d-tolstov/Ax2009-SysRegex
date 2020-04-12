@@ -5,6 +5,7 @@
 * Replace
 * IsMatch
 * Match
+* Matches
 
 ## Класс Match
 Используемые функции
